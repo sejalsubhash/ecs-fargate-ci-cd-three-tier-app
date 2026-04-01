@@ -1,0 +1,52 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: three-tier-db
+    environment:
+      MYSQL_ROOT_PASSWORD: localpassword
+      MYSQL_DATABASE: appdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-plocalpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build: ./backend
+    container_name: three-tier-backend
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: localpassword
+      DB_NAME: appdb
+      DB_PORT: 3306
+      JWT_SECRET: local-dev-jwt-secret
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: three-tier-frontend
+    environment:
+      BACKEND_HOST: backend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
+
+networks:
+  default:
+    name: three-tier-network
