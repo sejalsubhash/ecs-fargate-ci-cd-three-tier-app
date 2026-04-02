@@ -34,7 +34,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const PORT = parseInt(process.env.PORT) || 5000;
+const PORT = 5000;
 
 async function startServer() {
   try {
